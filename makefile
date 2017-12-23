@@ -10,8 +10,8 @@
 warnings = -wall -Wuninitialized
 
 
-main_objects = startup.cpp
-main_SRCS = AmosExtention2Ascii.cpp
+main_objects = startup.cpp init.cpp
+main_SRCS = AmosExtension2Ascii.cpp
 
 objects = $(main_objects:.cpp=.o)
 programs= $(main_SRCS:.cpp=.exe)
