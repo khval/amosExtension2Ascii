@@ -11,22 +11,6 @@
 #include <workbench/startup.h>
 #include <proto/asl.h>
 
-BOOL open_lib( const char *name, int ver , const char *iname, int iver, struct Library **base, struct Interface **interface)
-{
-	*interface = NULL;
-	*base = OpenLibrary( name , ver);
-	if (*base)
-	{
-		 *interface = GetInterface( *base,  iname , iver, TAG_END );
-		if (!*interface) printf("Unable to getInterface %s for %s %ld!\n",iname,name,ver);
-	}
-	else
-	{
-	   	printf("Unable to open the %s %ld!\n",name,ver);
-	}
-	return (*interface) ? TRUE : FALSE;
-}
-
 int32 SafeAddPart(char **oldPart, char *newPart)
 {
 	int32 success = 0;
@@ -57,27 +41,45 @@ char *get_filename(int args,char **arg)
 	{
 		BOOL has_path = FALSE;
 		BPTR currentLock;
-		char *txt = arg[1];
+		char *txt = NULL;
+		char *filename = NULL;
+		int n;
 
-		for(;*txt;txt++) if ((*txt=='/')||(*txt==':')) has_path = TRUE;
+		// skip switches
 
-		if (has_path) return strdup(arg[1]);
-
-		buffer[0];
-		currentLock = GetCurrentDir();
-		if (NameFromLock( currentLock , buffer, sizeof(buffer) ))
+		for (n=1; n< args; n++)	
 		{
-			char *name_and_path = strdup(buffer);
-
-			SafeAddPart(&name_and_path, arg[1] );
-			return name_and_path;
+			if (arg[n][0]!='-')
+			{
+				filename = arg[n];
+				break;
+			}
 		}
-		else
+
+		// if we found some thing that looks like a filename
+
+		if (filename)
 		{
-			return strdup(arg[1]);
+			txt = filename;
+			for(;*txt;txt++) if ((*txt=='/')||(*txt==':')) has_path = TRUE;
+
+			if (has_path) return strdup( filename );
+
+			buffer[0];
+			currentLock = GetCurrentDir();
+			if (NameFromLock( currentLock , buffer, sizeof(buffer) ))
+			{
+				char *name_and_path = strdup(buffer);
+				SafeAddPart(&name_and_path, filename );
+				return name_and_path;
+			}
+			else
+			{
+				return strdup( filename );
+			}
 		}
 	}
-	else // wbstartup
+	else
 	{
 		BPTR lock;
 		char *filename;
@@ -95,9 +97,6 @@ char *get_filename(int args,char **arg)
 			}
 			else
 			{
-
-				printf("%s:%d\n",__FUNCTION__,__LINE__);
-
 				return strdup(filename);
 			}
 		}
