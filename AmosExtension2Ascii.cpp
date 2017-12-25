@@ -6,6 +6,8 @@
 #include "startup.h"
 #include <proto/amosextension.h>
 
+#define debug 0
+
 extern struct Library 		*AslBase ;
 extern struct AslIFace 		*IAsl ;
 
@@ -187,7 +189,7 @@ void make_c_example(struct TokenInfo &cmd, char *output)
 				case 'I': ret = "void "; break;
 				case '0': ret = "int "; break;
 				case '1': ret = "float "; break;
-				case '2': ret = "std:string "; break;
+				case '2': ret = "std::string "; break;
 			}
 			rv = ret[0] != 0;
 			if (*aptr) aptr++;
@@ -214,7 +216,7 @@ void make_c_example(struct TokenInfo &cmd, char *output)
 					case 'I': ret = ""; break;
 					case '0': ret = "int"; break;
 					case '1': ret = "float"; break;
-					case '2': ret = "string"; break;
+					case '2': ret = "std::string"; break;
 					case ',': ret= ","; break;
 					case 't': ret=","; break;
 				}
@@ -236,7 +238,7 @@ int main( int args, char **arg )
 	char *filename;
 	struct extension *ext;
 	struct ExtensionDescriptor *ed;
-	int output_type = e_c_example;
+	int output_type = e_amos_example;
 	char formated_text[1000];
 
 	if (args>1)
@@ -267,7 +269,10 @@ int main( int args, char **arg )
 				{
 					for ( ed = FirstExtensionItem( ext ); ed ; ed = NextExtensionItem( ed ))
 					{
-
+#if (debug)
+						printf("NumberOfInstruction %d , NumberOfFunction %d\n",	ed -> tokenInfo.NumberOfInstruction,
+										ed -> tokenInfo.NumberOfFunction	);
+#endif
 						if ((ed -> tokenInfo.args != NULL ) || (ed -> tokenInfo.command !=NULL ))
 						{
 							switch (output_type)
@@ -291,12 +296,16 @@ int main( int args, char **arg )
 								case e_debug:
 									break;
 							}
-						}							
-/*
+						}
+						else
+						{
+						}						
+
+#if (debug)
 						printf("%s: %s\n", 
 							(ed -> tokenInfo.command) ? ed -> tokenInfo.command : "NULL",
 							(ed -> tokenInfo.args) ? ed -> tokenInfo.args : "NULL" ) ;
-*/
+#endif
 
 					}
 					CloseExtension( ext );
