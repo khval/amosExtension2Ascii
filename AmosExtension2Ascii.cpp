@@ -93,6 +93,16 @@ void StripSpaces( char *str)
 	*out = 0;
 }
 
+void DollarToStr(char *str)
+{
+	int n = strlen(str);
+
+	if (n>0)
+	{
+		if (str[n-1] == '$') sprintf(str+n-1,"STR");
+	}
+}
+
 void make_amos_example(struct TokenInfo &cmd, char *output)
 {
 	char *ptr;
@@ -116,7 +126,7 @@ void make_amos_example(struct TokenInfo &cmd, char *output)
 //		Comma or "t" for TO
 
 			ret = "";
-			aptr = cmd.args;
+			aptr = cmd.args ? cmd.args : "";
 			switch (*aptr)
 			{
 				case 'I': ret = ""; break;
@@ -124,11 +134,21 @@ void make_amos_example(struct TokenInfo &cmd, char *output)
 				case '1': ret = "f#="; break;
 				case '2': ret = "s$="; break;
 			}
+
 			rv = ret[0] != 0;
 			if (*aptr) aptr++;
+
 			if (*aptr == 0) rv = false;
 			
-			sprintf(tname, "%s", cmd.command[0]=='!' ? cmd.command+1 : cmd.command);
+			if (cmd.command)
+			{
+				sprintf(tname, "%s", cmd.command[0]=='!' ? cmd.command+1 : cmd.command);
+			}
+			else
+			{
+				sprintf(tname,"");	// nothing sorry
+			}
+
 			Capitalize(tname);
 
 			sprintf(output," %s%s%s", 
@@ -137,7 +157,8 @@ void make_amos_example(struct TokenInfo &cmd, char *output)
 					 rv ? "(" : " ");
 
 			ptr = output + strlen(output);
-			aptr = cmd.args;
+			aptr = cmd.args ? cmd.args : "";
+
 			if (*aptr) aptr++;
 
 			while (*aptr)
@@ -152,12 +173,40 @@ void make_amos_example(struct TokenInfo &cmd, char *output)
 					case ',': ret= ","; break;
 					case 't': ret=" To "; break;
 				}
-				sprintf(ptr,"%s",ret);
-				ptr = output + strlen(output);
+
+				sprintf(ptr,"%s",ret);				// add string at ptr
+				ptr = output + strlen(output);		// next place to add string
 				aptr++;
 			}
 
 			sprintf(ptr,"%s", rv ? ")" : " ");
+}
+
+
+void make_c_header(struct TokenInfo &cmd, char *output)
+{
+	char *ptr;
+	char tname[100];
+
+	char *_output;
+
+	sprintf(tname, "%s", cmd.command[0]=='!' ? cmd.command+1 : cmd.command);
+
+	Capitalize(tname);
+	StripSpaces(tname);
+	DollarToStr(tname);
+
+	_output = output;
+	sprintf(_output,"#define Token%s%s%s 0x%04X\n",tname, (cmd.args ? "_" : ""), (cmd.args? cmd.args : ""), cmd.token );
+	_output += strlen(_output);
+	sprintf(_output,"#define Inst%s%s%s %d",tname, (cmd.args ? "_" : ""), (cmd.args? cmd.args : ""), cmd.NumberOfInstruction );
+
+	for (ptr = output; *ptr; ptr++)
+	{
+		if (*ptr=='.') *ptr='_';
+		if (*ptr==',') *ptr='_';
+		if (*ptr=='|') *ptr='_';
+	}
 }
 
 void make_c_example(struct TokenInfo &cmd, char *output)
@@ -183,7 +232,7 @@ void make_c_example(struct TokenInfo &cmd, char *output)
 //		Comma or "t" for TO
 
 			ret = "";
-			aptr = cmd.args;
+			aptr = cmd.args ? cmd.args : "";
 			switch (*aptr)
 			{
 				case 'I': ret = "void "; break;
@@ -196,6 +245,7 @@ void make_c_example(struct TokenInfo &cmd, char *output)
 			if (*aptr == 0) rv = false;
 
 			sprintf(tname, "%s", cmd.command[0]=='!' ? cmd.command+1 : cmd.command);
+
 			Capitalize(tname);
 			StripSpaces(tname);
 
@@ -205,7 +255,7 @@ void make_c_example(struct TokenInfo &cmd, char *output)
 					 rv ? "(" : "(");
 
 			ptr = output + strlen(output);
-			aptr = cmd.args;
+			aptr = cmd.args ? cmd.args : "";
 			if (*aptr) aptr++;
 
 			while (*aptr)
@@ -232,6 +282,18 @@ void make_c_example(struct TokenInfo &cmd, char *output)
 extern bool init();
 extern void closedown();
 
+void print_help()
+{
+	printf("\nAmos Extension to AscII\n");
+	printf("\n");
+	printf("\t--amos\t\tAmos example\n");
+	printf("\t--c++\t\tc++ example\n");
+	printf("\t--c-header\te_c_header\n");
+	printf("\t--c-list\tc list format\n");
+	printf("\t--interface\tAmigaOS4 interface (XML file)\n");
+	printf("\n");
+}
+
 int main( int args, char **arg )
 {
 	FILE *fd;
@@ -247,11 +309,12 @@ int main( int args, char **arg )
 
 		for (n=1; n<args; n++)
 		{
-			if (strcasecmp(arg[n],"--c++")==0) { output_type = e_c_example; break; }
 			if (strcasecmp(arg[n],"--amos")==0) { output_type = e_amos_example; break; }
+			if (strcasecmp(arg[n],"--c++")==0) { output_type = e_c_example; break; }
+			if (strcasecmp(arg[n],"--c-header")==0) { output_type = e_c_header; break; }
+			if (strcasecmp(arg[n],"--help")==0) { print_help(); return 0; }
 		}
 	}
-
 
 	if (init())
 	{
@@ -267,6 +330,14 @@ int main( int args, char **arg )
 
 				if (ext)
 				{
+
+					switch (output_type)
+					{
+						case e_c_header:
+							printf("// token list, + offset to 680x0 assembler\n\n");
+					}
+					
+
 					for ( ed = FirstExtensionItem( ext ); ed ; ed = NextExtensionItem( ed ))
 					{
 #if (debug)
@@ -275,9 +346,19 @@ int main( int args, char **arg )
 #endif
 						if ((ed -> tokenInfo.args != NULL ) || (ed -> tokenInfo.command !=NULL ))
 						{
+
+#if (debug)
+						printf("output_type %d\n", output_type);
+#endif
+
 							switch (output_type)
 							{
 								case e_amos_example:
+
+#if (debug)
+						printf("ed -> tokenInfo %08x\n", ed -> tokenInfo);
+#endif
+
 									make_amos_example(ed -> tokenInfo, formated_text);
 									printf("%s\n", formated_text);
 									break;
@@ -288,6 +369,8 @@ int main( int args, char **arg )
 									break;
 
 								case e_c_header:
+									make_c_header(ed -> tokenInfo, formated_text);
+									printf("%s\n",formated_text);
 									break;
 
 								case e_os4_xml_interface:
