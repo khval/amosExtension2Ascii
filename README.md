@@ -25,7 +25,7 @@ Command options.
 
 --interfaceAmigaOS4 interface (XML file)
 
-	Output XML file
+	AmigaOS4 Interface XML file, that can be used to generate AmigaOS library skeleton library from, using idltool.
 
 Orginal source code can be found here:
 https://github.com/khval/amosExtension2Ascii
