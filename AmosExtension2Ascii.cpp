@@ -383,12 +383,24 @@ extern void closedown();
 void print_help()
 {
 	printf("\nAmos Extension to AscII\n");
+	printf("Copyright LiveForIt Software / Kjetil Hvalstrand\n");
+	printf("Software Licence MIT\n\n");
+	printf("This command designed to extract information and generate useful files that can be use\n");
+	printf("different ways in C/C++ projects, general idea is this files can be used in interpreter\nconvention programs, or as docs if have lost the docs\n");
 	printf("\n");
-	printf("\t--amos\t\tAmos example\n");
-	printf("\t--c++\t\tc++ example\n");
-	printf("\t--c-header\te_c_header\n");
-	printf("\t--c-list\tc list format\n");
-	printf("\t--interface\tAmigaOS4 interface (XML file)\n");
+	printf("--amos\n\n");
+	printf("\tShow the command in Amos fomrat\n\n");
+	printf("--c++\n\n");
+	printf("\tShow the command in c++ fomrat\n\n");
+	printf("--c-header\n\n");
+	printf("\tShow list #defines\n\n");
+	printf("--c-list\n\n");
+	printf("\tshow list in struct data format.\n\n");
+	printf("--interface\n\n");
+	printf("\tAmigaOS4 Interface XML file, that can be used to generate AmigaOS library skeleton library from, using idltool.\n");
+	printf("\n");
+	printf("Orginal source code can be found here:\n");
+	printf("https://github.com/khval/amosExtension2Ascii\n");
 	printf("\n");
 }
 

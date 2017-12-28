@@ -1,9 +1,12 @@
 # amosExtension2Ascii
 
 Amos Extension to AscII
+Copyright LiveForIt Software / Kjetil Hvalstrand
+Software Licence MIT
 
-This command designed to extract information and generate useful files that can be use 
-different ways in C/C++ projects, general idea is this files can be used in interpreter, convention programs.
+This command designed to extract information and generate useful files that can be use
+different ways in C/C++ projects, general idea is this files can be used in interpreter
+convention programs, or as docs if have lost the docs
 
 Command options.
 
