@@ -16,6 +16,7 @@ enum
 	e_amos_example,
 	e_c_example,
 	e_c_header,
+	e_c_list,
 	e_os4_xml_interface,
 	e_debug
 };
@@ -210,6 +211,30 @@ void make_c_header(struct TokenInfo &cmd, char *output)
 	}
 }
 
+void make_c_list(struct TokenInfo &cmd, char *output)
+{
+	char *ptr;
+	char tname[100];
+
+	char *_output;
+
+	sprintf(tname, "%s", cmd.command[0]=='!' ? cmd.command+1 : cmd.command);
+
+	Capitalize(tname);
+
+	_output = output;
+
+
+	sprintf(_output,"\t\t{0x%04X,\"%s\",\"%s\",%d,%d},",
+				cmd.token,
+				tname,
+				(cmd.args? cmd.args : ""),
+				cmd.NumberOfInstruction, 
+				cmd.NumberOfFunction);
+
+}
+
+
 void make_xml_interface(struct TokenInfo &cmd,  char *output)
 {
 	char *ptr;
@@ -388,6 +413,16 @@ void print_xml_interface_foot()
 	printf("</library>\n");
 }
 
+void print_c_list_header(const char *name)
+{
+	printf("struct Data %s[]={\n", name);
+}
+
+void print_c_list_foot()
+{
+	printf("\t\t{0x0000,NULL,NULL,0,0}};\n");
+}
+
 int main( int args, char **arg )
 {
 	FILE *fd;
@@ -406,6 +441,7 @@ int main( int args, char **arg )
 			if (strcasecmp(arg[n],"--amos")==0) { output_type = e_amos_example; break; }
 			if (strcasecmp(arg[n],"--c++")==0) { output_type = e_c_example; break; }
 			if (strcasecmp(arg[n],"--c-header")==0) { output_type = e_c_header; break; }
+			if (strcasecmp(arg[n],"--c-list")==0) { output_type = e_c_list; break; }
 			if (strcasecmp(arg[n],"--interface")==0) { output_type = e_os4_xml_interface; break; }
 			if (strcasecmp(arg[n],"--help")==0) { print_help(); return 0; }
 		}
@@ -425,15 +461,37 @@ int main( int args, char **arg )
 
 				if (ext)
 				{
-
-					switch (output_type)
 					{
-						case e_c_header:
-							printf("// token list, + offset to 680x0 assembler\n\n");
-							break;
-						case e_os4_xml_interface:
-							print_xml_interface_header("XXXXXX");
-							break;
+						char *libname = strdup(filename);
+						char *ptr = NULL;
+						int l = strlen(libname);
+
+						if (l>0)
+						for( ptr = libname + l - 1; ptr>libname; ptr--)
+						{
+							if (*ptr=='.') *ptr='\0';			// remove .lib extension
+
+							if ((*ptr=='/')||(*ptr==':'))		// if at dir or volume
+							{
+								ptr++;
+								break;
+							}
+						}
+						
+						switch (output_type)
+						{
+							case e_c_header:
+								printf("// token list, + offset to 680x0 assembler\n\n");
+								break;
+							case e_c_list:
+								print_c_list_header(ptr);
+								break;
+							case e_os4_xml_interface:
+								print_xml_interface_header(ptr);
+								break;
+						}
+						if (libname) free(libname);
+						libname;
 					}
 					
 
@@ -453,11 +511,9 @@ int main( int args, char **arg )
 							switch (output_type)
 							{
 								case e_amos_example:
-
 #if (debug)
 						printf("ed -> tokenInfo %08x\n", ed -> tokenInfo);
 #endif
-
 									make_amos_example(ed -> tokenInfo, formated_text);
 									printf("%s\n", formated_text);
 									break;
@@ -469,6 +525,11 @@ int main( int args, char **arg )
 
 								case e_c_header:
 									make_c_header(ed -> tokenInfo, formated_text);
+									printf("%s\n",formated_text);
+									break;
+
+								case e_c_list:
+									make_c_list(ed -> tokenInfo, formated_text);
 									printf("%s\n",formated_text);
 									break;
 
@@ -497,6 +558,11 @@ int main( int args, char **arg )
 					{
 						case e_c_header:
 							break;
+
+						case e_c_list:
+							print_c_list_foot();
+							break;
+
 						case e_os4_xml_interface:
 							print_xml_interface_foot();
 							break;
