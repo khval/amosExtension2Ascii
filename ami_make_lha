@@ -1,0 +1,29 @@
+
+if exists ram:AmosExtension2Ascii
+	delete ram:AmosExtension2Ascii all
+endif
+
+if exists ram:AmosExtension2Ascii.lha
+	delete ram:AmosExtension2Ascii.lha 
+endif
+
+makedir ram:AmosExtension2Ascii
+makedir ram:AmosExtension2Ascii/libs
+makedir ram:AmosExtension2Ascii/c
+makedir ram:AmosExtension2Ascii/tests
+
+copy libs:AmosExtension.library ram:AmosExtension2Ascii/libs
+copy AmosExtension2Ascii.exe ram:AmosExtension2Ascii/c/AmosExtension2Ascii
+copy tests/#? ram:AmosExtension2Ascii/tests ALL
+copy Readme.md ram:AmosExtension2Ascii/readme.txt
+copy LICENSE ram:AmosExtension2Ascii/LICENSE.txt
+
+copy ENVARC:Sys/def_ascii.info ram:AmosExtension2Ascii/readme.txt.info
+copy ENVARC:Sys/def_ascii.info ram:AmosExtension2Ascii/LICENSE.txt.info
+copy ENVARC:Sys/def_drawer.info ram:AmosExtension2Ascii.info
+copy ENVARC:Sys/def_drawer.info ram:AmosExtension2Ascii/libs.info
+copy ENVARC:Sys/def_drawer.info ram:AmosExtension2Ascii/c.info
+copy ENVARC:Sys/def_drawer.info ram:AmosExtension2Ascii/tests.info
+
+lha -r a ram:AmosExtension2Ascii.lha ram:AmosExtension2Ascii
+lha a ram:AmosExtension2Ascii.lha ram:AmosExtension2Ascii.info
