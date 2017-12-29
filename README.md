@@ -22,12 +22,14 @@ Command options.
 
 	Show list #defines
 
---c-listc list format
+--c-list
 
+	c list format
 	show list in struct data format.
 
---interfaceAmigaOS4 interface (XML file)
+--interfaceAmigaOS4
 
+	interface (XML file)
 	AmigaOS4 Interface XML file, that can be used to generate AmigaOS library skeleton library from, using idltool.
 
 Orginal source code can be found here:
