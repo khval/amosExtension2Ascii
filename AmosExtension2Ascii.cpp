@@ -17,6 +17,7 @@ enum
 	e_c_example,
 	e_c_header,
 	e_c_list,
+	e_c_list_kitty,
 	e_os4_xml_interface,
 	e_debug
 };
@@ -234,6 +235,30 @@ void make_c_list(struct TokenInfo &cmd, char *output)
 
 }
 
+void make_c_list_kitty(struct TokenInfo &cmd, char *output)
+{
+	char *ptr;
+	char tname[100];
+
+	char *_output;
+
+	sprintf(tname, "%s", cmd.command[0]=='!' ? cmd.command+1 : cmd.command);
+
+	Capitalize(tname);
+
+	_output = output;
+
+
+	sprintf(_output,"\t\t{0x%04X,\"%s\",%d,%s%s},",
+				cmd.token,
+				tname,
+				0,
+				 "math",
+				 tname);
+
+}
+
+
 
 void make_xml_interface(struct TokenInfo &cmd,  char *output)
 {
@@ -430,9 +455,19 @@ void print_c_list_header(const char *name)
 	printf("struct Data %s[]={\n", name);
 }
 
+void print_c_list_kitty_header(const char *name)
+{
+	printf("struct Data %s[]={\n", name);
+}
+
 void print_c_list_foot()
 {
 	printf("\t\t{0x0000,NULL,NULL,0,0}};\n");
+}
+
+void print_c_list_kitty_foot()
+{
+	printf("\t\t{0x0000,NULL,0,0}};\n");
 }
 
 int main( int args, char **arg )
@@ -454,6 +489,7 @@ int main( int args, char **arg )
 			if (strcasecmp(arg[n],"--c++")==0) { output_type = e_c_example; break; }
 			if (strcasecmp(arg[n],"--c-header")==0) { output_type = e_c_header; break; }
 			if (strcasecmp(arg[n],"--c-list")==0) { output_type = e_c_list; break; }
+			if (strcasecmp(arg[n],"--c-kitty-list")==0) { output_type = e_c_list_kitty; break; }
 			if (strcasecmp(arg[n],"--interface")==0) { output_type = e_os4_xml_interface; break; }
 			if (strcasecmp(arg[n],"--help")==0) { print_help(); return 0; }
 		}
@@ -497,6 +533,9 @@ int main( int args, char **arg )
 								break;
 							case e_c_list:
 								print_c_list_header(ptr);
+								break;
+							case e_c_list_kitty:
+								print_c_list_kitty_header(ptr);
 								break;
 							case e_os4_xml_interface:
 								print_xml_interface_header(ptr);
@@ -545,6 +584,11 @@ int main( int args, char **arg )
 									printf("%s\n",formated_text);
 									break;
 
+								case e_c_list_kitty:
+									make_c_list_kitty(ed -> tokenInfo, formated_text);
+									printf("%s\n",formated_text);
+									break;
+
 								case e_os4_xml_interface:
 									make_xml_interface(ed -> tokenInfo, formated_text);
 									printf("%s",formated_text);
@@ -573,6 +617,10 @@ int main( int args, char **arg )
 
 						case e_c_list:
 							print_c_list_foot();
+							break;
+
+						case e_c_list_kitty:
+							print_c_list_kitty_foot();
 							break;
 
 						case e_os4_xml_interface:
