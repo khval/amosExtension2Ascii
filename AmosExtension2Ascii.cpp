@@ -24,6 +24,8 @@ enum
 
 const char *filetypes[]={".lib",NULL};
 
+char *funcPrefix = NULL;
+
 bool is_correct_file(char *name)
 {
 	const char **type;
@@ -87,10 +89,13 @@ void StripSpaces( char *str)
 {
 	char *src;
 	char *out = str;
+	char sym;
 
 	for (src=str;*src;src++)
 	{
-		if (*src != ' ') *out++=*src;
+		sym=*src;
+		if (sym == '|') sym = '_';
+		if (sym != ' ') *out++=sym;
 	}
 	*out = 0;
 }
@@ -239,12 +244,17 @@ void make_c_list_kitty(struct TokenInfo &cmd, char *output)
 {
 	char *ptr;
 	char tname[100];
+	char *funcName;
 
 	char *_output;
 
 	sprintf(tname, "%s", cmd.command[0]=='!' ? cmd.command+1 : cmd.command);
 
 	Capitalize(tname);
+
+	funcName = strdup(tname);
+	DollarToStr(funcName);
+	StripSpaces(funcName);
 
 	_output = output;
 
@@ -253,9 +263,15 @@ void make_c_list_kitty(struct TokenInfo &cmd, char *output)
 				cmd.token,
 				tname,
 				0,
-				 "math",
-				 tname);
+				 funcPrefix,
+				 funcName ? funcName : "<funcName is NULL>");
 
+
+	if (funcName)
+	{
+		free(funcName);
+		funcName;
+	}
 }
 
 
@@ -455,9 +471,63 @@ void print_c_list_header(const char *name)
 	printf("struct Data %s[]={\n", name);
 }
 
+
+const char *prefixList[] = 
+{
+	"_",
+	"AMOSPro",
+	".lib",
+	NULL
+};
+
+void remove_words(char *name,const char **list)
+{
+	const char **i;
+	char *src;
+	char *dest = name;
+	bool found;
+	int sym;
+
+	for (src = name;*src;src++)
+	{
+
+		found = false;
+
+		for (i=list;*i;i++)
+		{
+			if (strncasecmp( src, *i , strlen(*i) ) == 0 )
+			{
+				src += strlen(*i);
+				src--;
+				found = true;
+				continue;
+			}
+		}
+
+		if (found) continue;
+
+		sym = *src;
+
+		if ((sym>='A')&&(sym<='Z')) sym=sym-'A'+'a';
+
+		*dest = sym;
+		dest++;
+	}
+	*dest = 0;
+
+	if (strcmp(name,"") == 0)
+	{
+		sprintf(name,"cmd");
+	}
+}
+
 void print_c_list_kitty_header(const char *name)
 {
 	printf("struct Data %s[]={\n", name);
+
+	funcPrefix = strdup(name);
+	remove_words(funcPrefix,prefixList);
+
 }
 
 void print_c_list_foot()
@@ -632,9 +702,12 @@ int main( int args, char **arg )
 				}
 			}
 			else printf("not correct file\n");
+			
+			if (funcPrefix) free(funcPrefix);
 
 			free(filename);
 		}
+
 
 		closedown();
 	}
