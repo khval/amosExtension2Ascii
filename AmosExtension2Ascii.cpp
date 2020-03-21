@@ -490,7 +490,6 @@ void remove_words(char *name,const char **list)
 
 	for (src = name;*src;src++)
 	{
-
 		found = false;
 
 		for (i=list;*i;i++)
@@ -523,7 +522,7 @@ void remove_words(char *name,const char **list)
 
 void print_c_list_kitty_header(const char *name)
 {
-	printf("struct Data %s[]={\n", name);
+	printf("struct cmdData %s[]={\n", name);
 
 	funcPrefix = strdup(name);
 	remove_words(funcPrefix,prefixList);
