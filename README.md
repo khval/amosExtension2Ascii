@@ -26,6 +26,16 @@ Command options.
 
 	c list format
 	show list in struct data format.
+	
+--c-kitty-list
+
+	Generates table of commands for cmdList.c
+	(for Amos kittens external extension.)
+
+--c-kitty-header
+
+	Generate a list of commands for cmdList.h
+	(for Amos kittens external extension.)
 
 --interfaceAmigaOS4
 
