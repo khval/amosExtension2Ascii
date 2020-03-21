@@ -463,14 +463,27 @@ void print_help()
 	printf("This command designed to extract information and generate useful files that can be use\n");
 	printf("different ways in C/C++ projects, general idea is this files can be used in interpreter\nconvention programs, or as docs if have lost the docs\n");
 	printf("\n");
+
 	printf("--amos\n\n");
 	printf("\tShow the command in Amos fomrat\n\n");
+
 	printf("--c++\n\n");
 	printf("\tShow the command in c++ fomrat\n\n");
+
 	printf("--c-header\n\n");
 	printf("\tShow list #defines\n\n");
+
 	printf("--c-list\n\n");
 	printf("\tshow list in struct data format.\n\n");
+
+	printf("--c-kitty-list\n\n");
+	printf("\tGenerates table of commands for cmdList.c\n");
+	printf("\t(for Amos kittens external extension.)\n\n");
+
+	printf("--c-kitty-header\n\n");
+	printf("\tGenerate a list of commands for cmdList.h\n");
+	printf("\tfor Amos kittens external extension.)\n\n");
+
 	printf("--interface\n\n");
 	printf("\tAmigaOS4 Interface XML file, that can be used to generate AmigaOS library skeleton library from, using idltool.\n");
 	printf("\n");
