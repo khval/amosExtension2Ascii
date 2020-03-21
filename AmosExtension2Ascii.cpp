@@ -16,6 +16,7 @@ enum
 	e_amos_example,
 	e_c_example,
 	e_c_header,
+	e_c_header_kitty,
 	e_c_list,
 	e_c_list_kitty,
 	e_os4_xml_interface,
@@ -239,6 +240,39 @@ void make_c_list(struct TokenInfo &cmd, char *output)
 				cmd.NumberOfFunction);
 
 }
+
+
+void make_c_header_kitty(struct TokenInfo &cmd, char *output)
+{
+	char *ptr;
+	char tname[100];
+	char *funcName;
+
+	char *_output;
+
+	sprintf(tname, "%s", cmd.command[0]=='!' ? cmd.command+1 : cmd.command);
+
+	Capitalize(tname);
+
+	funcName = strdup(tname);
+	DollarToStr(funcName);
+	StripSpaces(funcName);
+
+	_output = output;
+
+
+	sprintf(_output,"extern char *%s%s KITTENS_CMD_ARGS;",
+				 funcPrefix,
+				 funcName ? funcName : "<funcName is NULL>");
+
+
+	if (funcName)
+	{
+		free(funcName);
+		funcName;
+	}
+}
+
 
 void make_c_list_kitty(struct TokenInfo &cmd, char *output)
 {
@@ -559,6 +593,7 @@ int main( int args, char **arg )
 			if (strcasecmp(arg[n],"--c-header")==0) { output_type = e_c_header; break; }
 			if (strcasecmp(arg[n],"--c-list")==0) { output_type = e_c_list; break; }
 			if (strcasecmp(arg[n],"--c-kitty-list")==0) { output_type = e_c_list_kitty; break; }
+			if (strcasecmp(arg[n],"--c-kitty-header")==0) { output_type = e_c_header_kitty; break; }
 			if (strcasecmp(arg[n],"--interface")==0) { output_type = e_os4_xml_interface; break; }
 			if (strcasecmp(arg[n],"--help")==0) { print_help(); return 0; }
 		}
@@ -603,6 +638,7 @@ int main( int args, char **arg )
 							case e_c_list:
 								print_c_list_header(ptr);
 								break;
+							case e_c_header_kitty:
 							case e_c_list_kitty:
 								print_c_list_kitty_header(ptr);
 								break;
@@ -650,6 +686,11 @@ int main( int args, char **arg )
 
 								case e_c_list:
 									make_c_list(ed -> tokenInfo, formated_text);
+									printf("%s\n",formated_text);
+									break;
+
+								case e_c_header_kitty:
+									make_c_header_kitty(ed -> tokenInfo, formated_text);
 									printf("%s\n",formated_text);
 									break;
 
