@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <vector>
+#include <string>
 #include <proto/exec.h>
 #include "startup.h"
 #include <proto/amosextension.h>
@@ -9,7 +11,10 @@
 #define debug 0
 
 extern struct Library 		*AslBase ;
-extern struct AslIFace 		*IAsl ;
+extern struct AslIFace 	*IAsl ;
+
+
+std::vector<std::string> lines;
 
 enum 
 {
@@ -109,6 +114,16 @@ void DollarToStr(char *str)
 	{
 		if (str[n-1] == '$') sprintf(str+n-1,"STR");
 		if (str[n-1] == '#') sprintf(str+n-1,"File");
+	}
+}
+
+void dotToUnderscore(char *str)
+{
+	char *src;
+
+	for (src=str;*src;src++)
+	{
+		if (*src == '.') *src = '_';
 	}
 }
 
@@ -242,13 +257,12 @@ void make_c_list(struct TokenInfo &cmd, char *output)
 }
 
 
-void make_c_header_kitty(struct TokenInfo &cmd, char *output)
+void make_c_header_kitty(struct TokenInfo &cmd)
 {
 	char *ptr;
 	char tname[100];
 	char *funcName;
-
-	char *_output;
+	char _output[1000];
 
 	sprintf(tname, "%s", cmd.command[0]=='!' ? cmd.command+1 : cmd.command);
 
@@ -257,14 +271,13 @@ void make_c_header_kitty(struct TokenInfo &cmd, char *output)
 	funcName = strdup(tname);
 	DollarToStr(funcName);
 	StripSpaces(funcName);
-
-	_output = output;
-
+	dotToUnderscore(funcName);
 
 	sprintf(_output,"extern char *%s%s KITTENS_CMD_ARGS;",
 				 funcPrefix,
 				 funcName ? funcName : "<funcName is NULL>");
 
+	lines.push_back(_output);
 
 	if (funcName)
 	{
@@ -274,13 +287,12 @@ void make_c_header_kitty(struct TokenInfo &cmd, char *output)
 }
 
 
-void make_c_list_kitty(struct TokenInfo &cmd, char *output)
+void make_c_list_kitty(struct TokenInfo &cmd)
 {
 	char *ptr;
 	char tname[100];
 	char *funcName;
-
-	char *_output;
+	char _output[1000];
 
 	sprintf(tname, "%s", cmd.command[0]=='!' ? cmd.command+1 : cmd.command);
 
@@ -289,9 +301,7 @@ void make_c_list_kitty(struct TokenInfo &cmd, char *output)
 	funcName = strdup(tname);
 	DollarToStr(funcName);
 	StripSpaces(funcName);
-
-	_output = output;
-
+	dotToUnderscore(funcName);
 
 	sprintf(_output,"\t\t{0x%04X,\"%s\",%d,%s%s},",
 				cmd.token,
@@ -300,6 +310,7 @@ void make_c_list_kitty(struct TokenInfo &cmd, char *output)
 				 funcPrefix,
 				 funcName ? funcName : "<funcName is NULL>");
 
+	lines.push_back(_output);
 
 	if (funcName)
 	{
@@ -583,7 +594,46 @@ void print_c_list_foot()
 
 void print_c_list_kitty_foot()
 {
+	std::vector<std::string>::iterator it;
+
+	for (it=lines.begin(); it != lines.end(); it++)
+	{
+		printf("%s\n", it -> c_str());
+	}
+
 	printf("\t\t{0x0000,NULL,0,0}};\n");
+}
+
+void print_c_header_kitty_foot()
+{
+	int n;
+	bool found;
+	std::vector<std::string> unique;
+	std::vector<std::string>::iterator it;
+	std::vector<std::string>::iterator it2;
+
+	std::sort( lines.begin(), lines.end());
+
+	for (it=lines.begin(); it != lines.end(); it++)
+	{
+		found = false;
+
+		for (it2=unique.begin(); it2 != unique.end(); it2++)
+		{
+
+			if (it -> compare( *it2 )==0) 
+			{
+				found = true;
+				break;
+			}
+		}
+		
+		if (!found)
+		{
+			printf("%s\n", it -> c_str());
+			unique.push_back(*it);
+		}
+	}
 }
 
 int main( int args, char **arg )
@@ -703,13 +753,11 @@ int main( int args, char **arg )
 									break;
 
 								case e_c_header_kitty:
-									make_c_header_kitty(ed -> tokenInfo, formated_text);
-									printf("%s\n",formated_text);
+									make_c_header_kitty(ed -> tokenInfo);
 									break;
 
 								case e_c_list_kitty:
-									make_c_list_kitty(ed -> tokenInfo, formated_text);
-									printf("%s\n",formated_text);
+									make_c_list_kitty(ed -> tokenInfo);
 									break;
 
 								case e_os4_xml_interface:
@@ -744,6 +792,10 @@ int main( int args, char **arg )
 
 						case e_c_list_kitty:
 							print_c_list_kitty_foot();
+							break;
+
+						case e_c_header_kitty:
+							print_c_header_kitty_foot();
 							break;
 
 						case e_os4_xml_interface:
